@@ -22,3 +22,6 @@ venv/
 
 # OS/editor noise
 .DS_Store
+
+# Test/runtime artifacts
+encrypted_storage/*.enc

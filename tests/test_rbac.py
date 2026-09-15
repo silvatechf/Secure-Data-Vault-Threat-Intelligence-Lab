@@ -4,9 +4,10 @@ tests/test_rbac.py
 
 Tests for role-based access control on the /admin endpoints.
 """
+from tests.test_constants import TEST_PASSWORD, TEST_WRONG_PASSWORD
 
 
-def _register_login_get_token(client, username, password="Str0ng!Password"):
+def _register_login_get_token(client, username, password=TEST_PASSWORD):
     client.post(
         "/auth/register",
         json={"username": username, "email": f"{username}@example.com", "password": password},
@@ -36,7 +37,7 @@ class TestRBAC:
         # -- the OLD token still says "user" (JWTs are immutable once
         # issued), which is itself a useful, realistic detail.
         response = client.post(
-            "/auth/login", json={"username": "adminuser", "password": "Str0ng!Password"}
+            "/auth/login", json={"username": "adminuser", "password": TEST_PASSWORD}
         )
         new_token = response.json()["access_token"]
 
@@ -70,7 +71,7 @@ class TestRBAC:
         _register_login_get_token(client, "analystuser")
         db_session_for_role_promotion("analystuser", "analyst")
         response = client.post(
-            "/auth/login", json={"username": "analystuser", "password": "Str0ng!Password"}
+            "/auth/login", json={"username": "analystuser", "password": TEST_PASSWORD}
         )
         token = response.json()["access_token"]
 

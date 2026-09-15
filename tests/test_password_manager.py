@@ -8,6 +8,7 @@ interactive CLI (which reads from stdin/getpass and isn't meant to be
 driven by pytest). Clipboard behavior is tested separately and mocked --
 no real system clipboard is touched.
 """
+from tests.test_constants import TEST_PASSWORD, TEST_WRONG_PASSWORD
 
 from unittest.mock import patch
 
@@ -37,7 +38,7 @@ def user_and_engine(db_session_for_role_promotion):
     from tests.conftest import TestSessionLocal
 
     db = TestSessionLocal()
-    password = "Str0ng!Password"
+    password = TEST_PASSWORD
     user = User(username="clitestuser", email="cli@example.com", password_hash=hash_password(password))
     db.add(user)
     db.commit()

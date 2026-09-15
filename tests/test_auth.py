@@ -4,6 +4,7 @@ tests/test_auth.py
 
 Tests for password hashing, input validation, and the /auth endpoints.
 """
+from tests.test_constants import TEST_PASSWORD, TEST_WRONG_PASSWORD
 
 from app.auth.hashing import hash_password, verify_password
 from app.middleware.validation import (
@@ -25,7 +26,7 @@ class TestHashing:
 
     def test_wrong_password_does_not_verify(self):
         hashed = hash_password("CorrectHorse123!")
-        assert verify_password("WrongPassword!1", hashed) is False
+        assert verify_password(TEST_WRONG_PASSWORD, hashed) is False
 
     def test_same_password_hashed_twice_produces_different_hashes(self):
         """
@@ -58,7 +59,7 @@ class TestValidation:
         assert validate_username("ab").is_valid is False
 
     def test_strong_password_passes(self):
-        assert validate_password("Str0ng!Password").is_valid is True
+        assert validate_password(TEST_PASSWORD).is_valid is True
 
     def test_password_missing_special_char_fails(self):
         assert validate_password("NoSpecialChar123").is_valid is False
@@ -74,7 +75,7 @@ class TestAuthEndpoints:
             json={
                 "username": "newuser",
                 "email": "newuser@example.com",
-                "password": "Str0ng!Password",
+                "password": TEST_PASSWORD,
             },
         )
         assert response.status_code == 201
@@ -95,7 +96,7 @@ class TestAuthEndpoints:
         payload = {
             "username": "duplicate",
             "email": "first@example.com",
-            "password": "Str0ng!Password",
+            "password": TEST_PASSWORD,
         }
         client.post("/auth/register", json=payload)
 
@@ -109,11 +110,11 @@ class TestAuthEndpoints:
             json={
                 "username": "loginuser",
                 "email": "login@example.com",
-                "password": "Str0ng!Password",
+                "password": TEST_PASSWORD,
             },
         )
         response = client.post(
-            "/auth/login", json={"username": "loginuser", "password": "Str0ng!Password"}
+            "/auth/login", json={"username": "loginuser", "password": TEST_PASSWORD}
         )
         assert response.status_code == 200
 
@@ -123,7 +124,7 @@ class TestAuthEndpoints:
             json={
                 "username": "loginuser2",
                 "email": "login2@example.com",
-                "password": "Str0ng!Password",
+                "password": TEST_PASSWORD,
             },
         )
         response = client.post(

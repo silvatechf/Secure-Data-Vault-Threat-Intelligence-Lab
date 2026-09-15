@@ -5,6 +5,7 @@ tests/test_rate_limiter.py
 Tests for both rate-limiting algorithms in isolation, plus the actual
 /auth/login endpoint enforcing them end to end.
 """
+from tests.test_constants import TEST_PASSWORD, TEST_WRONG_PASSWORD
 
 import time
 
@@ -87,16 +88,16 @@ class TestLoginEndpointRateLimiting:
     def test_sixth_login_attempt_within_a_minute_is_rate_limited(self, client):
         client.post(
             "/auth/register",
-            json={"username": "ratelimited", "email": "rl@example.com", "password": "Str0ng!Password"},
+            json={"username": "ratelimited", "email": "rl@example.com", "password": TEST_PASSWORD},
         )
         for _ in range(5):
             response = client.post(
-                "/auth/login", json={"username": "ratelimited", "password": "WrongPassword!1"}
+                "/auth/login", json={"username": "ratelimited", "password": TEST_WRONG_PASSWORD}
             )
             assert response.status_code == 401  # wrong password, but still within the rate limit
 
         sixth_response = client.post(
-            "/auth/login", json={"username": "ratelimited", "password": "WrongPassword!1"}
+            "/auth/login", json={"username": "ratelimited", "password": TEST_WRONG_PASSWORD}
         )
         assert sixth_response.status_code == 429
 
@@ -108,12 +109,12 @@ class TestLoginEndpointRateLimiting:
         """
         client.post(
             "/auth/register",
-            json={"username": "burstuser", "email": "burst@example.com", "password": "Str0ng!Password"},
+            json={"username": "burstuser", "email": "burst@example.com", "password": TEST_PASSWORD},
         )
         for _ in range(5):
-            client.post("/auth/login", json={"username": "burstuser", "password": "Str0ng!Password"})
+            client.post("/auth/login", json={"username": "burstuser", "password": TEST_PASSWORD})
 
         sixth_response = client.post(
-            "/auth/login", json={"username": "burstuser", "password": "Str0ng!Password"}
+            "/auth/login", json={"username": "burstuser", "password": TEST_PASSWORD}
         )
         assert sixth_response.status_code == 429

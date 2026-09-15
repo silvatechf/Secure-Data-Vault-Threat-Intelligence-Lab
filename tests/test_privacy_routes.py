@@ -2,17 +2,18 @@
 tests/test_privacy_routes.py
 ===============================
 """
+from tests.test_constants import TEST_PASSWORD, TEST_WRONG_PASSWORD
 
 
 def _register_admin(client, username="privacyadmin"):
     response = client.post(
         "/auth/register",
-        json={"username": username, "email": f"{username}@example.com", "password": "Str0ng!Password"},
+        json={"username": username, "email": f"{username}@example.com", "password": TEST_PASSWORD},
     )
     return response.json()["id"]
 
 
-def _login(client, username, password="Str0ng!Password"):
+def _login(client, username, password=TEST_PASSWORD):
     response = client.post("/auth/login", json={"username": username, "password": password})
     return response.json()["access_token"]
 
@@ -21,7 +22,7 @@ class TestAggregatedReportEndpoint:
     def test_non_admin_cannot_access_the_report(self, client):
         client.post(
             "/auth/register",
-            json={"username": "regularuser", "email": "r@example.com", "password": "Str0ng!Password"},
+            json={"username": "regularuser", "email": "r@example.com", "password": TEST_PASSWORD},
         )
         token = _login(client, "regularuser")
 

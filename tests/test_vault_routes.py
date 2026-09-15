@@ -5,11 +5,12 @@ tests/test_vault_routes.py
 End-to-end tests through the actual FastAPI endpoints, now using real JWT
 authentication (Week 5-6) instead of Week 3-4's client-supplied user_id.
 """
+from tests.test_constants import TEST_PASSWORD, TEST_WRONG_PASSWORD
 
 import io
 
 
-def _register_and_login(client, username="vaultuser", password="Str0ng!Password"):
+def _register_and_login(client, username="vaultuser", password=TEST_PASSWORD):
     """Registers a user and returns (user_id, access_token)."""
     register_response = client.post(
         "/auth/register",
@@ -36,7 +37,7 @@ class TestUploadDownloadRoundTrip:
 
         upload_response = client.post(
             "/vault/upload",
-            params={"vault_password": "Str0ng!Password", "description": "test file"},
+            params={"vault_password": TEST_PASSWORD, "description": "test file"},
             files={"file": ("secret.txt", io.BytesIO(original_content), "text/plain")},
             headers=_auth_header(token),
         )
@@ -45,7 +46,7 @@ class TestUploadDownloadRoundTrip:
 
         download_response = client.get(
             f"/vault/download/{entry_id}",
-            params={"vault_password": "Str0ng!Password"},
+            params={"vault_password": TEST_PASSWORD},
             headers=_auth_header(token),
         )
         assert download_response.status_code == 200
@@ -55,7 +56,7 @@ class TestUploadDownloadRoundTrip:
     def test_upload_without_a_token_is_rejected(self, client):
         response = client.post(
             "/vault/upload",
-            params={"vault_password": "Str0ng!Password", "description": ""},
+            params={"vault_password": TEST_PASSWORD, "description": ""},
             files={"file": ("f.txt", io.BytesIO(b"data"), "text/plain")},
         )
         assert response.status_code == 401  # HTTPBearer rejects a missing Authorization header
@@ -64,7 +65,7 @@ class TestUploadDownloadRoundTrip:
         _, token = _register_and_login(client)
         upload_response = client.post(
             "/vault/upload",
-            params={"vault_password": "Str0ng!Password", "description": ""},
+            params={"vault_password": TEST_PASSWORD, "description": ""},
             files={"file": ("f.txt", io.BytesIO(b"data"), "text/plain")},
             headers=_auth_header(token),
         )
@@ -72,7 +73,7 @@ class TestUploadDownloadRoundTrip:
 
         response = client.get(
             f"/vault/download/{entry_id}",
-            params={"vault_password": "TotallyWrongPassword!1"},
+            params={"vault_password": TEST_WRONG_PASSWORD},
             headers=_auth_header(token),
         )
         assert response.status_code == 422  # AES-GCM integrity check fails with the wrong derived key
@@ -83,7 +84,7 @@ class TestUploadDownloadRoundTrip:
 
         upload_response = client.post(
             "/vault/upload",
-            params={"vault_password": "Str0ng!Password", "description": ""},
+            params={"vault_password": TEST_PASSWORD, "description": ""},
             files={"file": ("f.txt", io.BytesIO(b"user a's secret"), "text/plain")},
             headers=_auth_header(token_a),
         )
@@ -91,7 +92,7 @@ class TestUploadDownloadRoundTrip:
 
         response = client.get(
             f"/vault/download/{entry_id}",
-            params={"vault_password": "Str0ng!Password"},
+            params={"vault_password": TEST_PASSWORD},
             headers=_auth_header(token_b),
         )
         assert response.status_code == 404
@@ -106,7 +107,7 @@ class TestUploadDownloadRoundTrip:
         """
         upload_response = client.post(
             "/vault/upload",
-            params={"vault_password": "Str0ng!Password", "description": ""},
+            params={"vault_password": TEST_PASSWORD, "description": ""},
         )
         # No Authorization header at all -- proves user identity cannot be
         # supplied any other way.
@@ -116,7 +117,7 @@ class TestUploadDownloadRoundTrip:
         _, token = _register_and_login(client)
         upload_response = client.post(
             "/vault/upload",
-            params={"vault_password": "Str0ng!Password", "description": "backup for john@example.com"},
+            params={"vault_password": TEST_PASSWORD, "description": "backup for john@example.com"},
             files={"file": ("f.txt", io.BytesIO(b"data"), "text/plain")},
             headers=_auth_header(token),
         )
