@@ -1,0 +1,39 @@
+# docker-compose.yml
+#
+# Runs the main application and the honeypot as two genuinely separate
+# containers -- the same "separate process, separate port" isolation
+# described in docs/week-07-08-threat-intelligence.md, just expressed as
+# two services instead of two manually-started processes.
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:////app/data/vault.db
+      - SKIP_PERMISSION_CHECK=0
+    volumes:
+      - vault-data:/app/data
+      - vault-keys:/app/keys
+    restart: unless-stopped
+
+  honeypot:
+    build: .
+    command: ["python", "-m", "flask", "--app", "app.honeypot.server", "run", "--host", "0.0.0.0", "--port", "8080"]
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=sqlite:////app/data/vault.db
+      - SKIP_PERMISSION_CHECK=1
+      # Both services point at the SAME database file, deliberately: the
+      # honeypot's captured events (honeypot_logs, threat_intel) are read
+      # from the same place the main app's /admin routes would inspect
+      # them from -- not a second, disconnected database.
+    volumes:
+      - vault-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  vault-data:
+  vault-keys:
