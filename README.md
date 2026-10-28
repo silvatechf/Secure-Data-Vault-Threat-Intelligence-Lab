@@ -8,8 +8,51 @@
 
 
 
-![alt text](docs/images/secure-data-vault-dashboard.png)
+![Dashboard del laboratorio](docs/images/secure-data-vault-dashboard.png)
 
+---
+
+## Inicio rápido
+
+Requisitos: Python 3.12+ y una terminal. Para ejecutar los servicios en contenedores, también necesitas Docker con Docker Compose.
+
+### Windows PowerShell
+
+```powershell
+git clone https://github.com/silvatechf/Secure-Data-Vault-Threat-Intelligence-Lab.git
+Set-Location Secure-Data-Vault-Threat-Intelligence-Lab
+
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+
+# Run the automated test suite
+python -m pytest tests/ -v
+
+# Run the documented static and dependency checks
+python -m bandit -r app/ -x app/insecure
+python -m pip_audit -r requirements.txt
+```
+
+### Start the API
+
+```powershell
+uvicorn app.main:app --reload
+```
+
+The API's health endpoint is available at `http://127.0.0.1:8000/health` when startup completes successfully.
+
+**Local permission-check note:** the application checks sensitive-file permissions at startup. If your local Windows filesystem cannot represent the expected permission modes, do not disable this control in a deployed environment. For a local-only test session, the repository supports `SKIP_PERMISSION_CHECK=1`; remove the setting when finished.
+
+### Docker Compose
+
+```powershell
+docker compose up --build
+```
+
+The main API is exposed on port `8000` and the separate honeypot service on port `8080`. The repository documents Docker runtime verification as pending; building or starting containers locally is not, by itself, proof of production readiness.
+
+---
 
 ## 🎯 ¿Qué es Secure Data Vault?
 
@@ -155,7 +198,7 @@ AES-256-GCM
 
 con un IV aleatorio generado para cada operación de cifrado.
 
-Además de confidencialidad, GCM proporciona autenticación e integridad del ciphertext. Una modificación del contenido provoca un fallo de verificación durante la descifrado.
+Además de confidencialidad, GCM proporciona autenticación e integridad del ciphertext. Una modificación del contenido provoca un fallo de verificación durante el descifrado.
 
 ### Derivación de claves
 
@@ -764,7 +807,7 @@ Estas limitaciones no se ocultan deliberadamente: forman parte de la documentaci
 | SARIF | ✅ |
 | Bandit Audit | ✅ |
 | pip-audit | ✅ |
-| Docker Runtime Verification | (Hacer en su propio ambiente)|
+| Docker Runtime Verification | Pendiente de verificación operativa |
 
 ---
 
